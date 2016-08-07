@@ -70,7 +70,7 @@
         <nav class="navbar navbar-default">
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
-                <a class="navbar-brand text-center" href="#" style="width: 100%; color: #004879;"><h3 style="margin: 0px;">Capital Juan</h3></a>
+                <a class="navbar-brand text-center" href="#" style="width: 100%; color: #004879;"><h3 style="margin: 0px;">Capital Wonton</h3></a>
             </div>
         </nav>
     </div>
@@ -103,6 +103,7 @@
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Home</a></li>
                     <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Request/Pay</a></li>
+                    <li role="presentation"><a href="#transactions" aria-controls="profile" role="tab" data-toggle="tab">Transactions</a></li>
                 </ul>
 
                 <!-- Tab panes -->
@@ -124,6 +125,8 @@
                         <button id="pay-1" class="btn" style="width: 100%; background: #ccc; font-size: 20px; margin-top: 20px; display: block;">Pay</button>
                         <button id="pay-2" class="btn btn-success" style="width: 100%; font-size: 20px; margin-top: 20px; display: none;"></button>
                     </div>
+                    <div role="tabpanel" class="tab-pane active" id="transactions">
+                    </div>
               </div>
 
             </div>  
@@ -137,17 +140,16 @@
         var customers = [];
         var customer = {};
         var accounts = [];
-        var pay_account = "";
+        var pay_account = ""; // sender account id
         $.ajax({
             url: 'http://api.reimaginebanking.com/customers?key=9416d0a4733e0afdb25683edde1840ef',
             success: function(results){
-                console.log(results);
                 // temporary password frontend assign
                 for (var i = 0; i < results.length; i++) {
                     results[i].password = "password";
                 }
                 
-                customers = results;
+                customers = results.slice();
             },
             error: function(xhr, status, error) {
                 console.log("errors");
@@ -183,7 +185,6 @@
                     //if(true) {
                     if ($("#username").val() === customers[i].first_name && $("#password").val() === customers[i].password) {
                         customer = customers[i];
-                        console.log(customer);
                         valid = true;
                         // populate next page
                         $("#greeting").html("Hi " + customer.first_name);
@@ -192,10 +193,10 @@
                         $.ajax({
                             url: str,
                             success: function(results){
-                                accounts = results;
+                                accounts = results.slice();
                                 // populate home page
                                 for (var i = 0; i < accounts.length; i++) {
-                                    $("#customer-accounts").append("<h5><b>" + accounts[i].nickname + "</b></h5><h5 style='display: inline'>Balance: </h5>$" + accounts[i].balance);
+                                    $("#customer-accounts").append("<div style='margin-bottom: 20px;'><h5><b>" + accounts[i].nickname + "</b></h5><h5 style='display: inline; font-weight: bold;'>Balance: </h5>$" + accounts[i].balance) + ">/div>";
                                 }
                                 
                                 
@@ -206,6 +207,11 @@
                                 for (var i = 0; i < accounts.length; i++) {
                                     $("#accounts-pay").append("<li><a href='#' id='pay-" + accounts[i]._id + "'>" + accounts[i].nickname + "</a></li>");
                                 }
+                                
+                                // populate transations
+                                $("#transactions").append("<button id='refresh' class='btn btn-primary'>Refresh</button><hr><div id='inner'></div>");
+                                update();
+                                ////
                             },
                             error: function(xhr, status, error) {
                                 console.log("errors in customer account populate");
@@ -223,17 +229,100 @@
                 }
             });
             
+             $(".dropdown-menu").on('click', 'li a', function(){
+                  $(".btn:first-child").val($(this).text());
+                 
+               });
+            
             $("#pay-1").click(function() {
                 $("#pay-2").html("Pay " + $("#transfer-to").val() + " $" + $("#transfer-amount").val());
                 $("#pay-1").css("display", "none");
                 $("#pay-2").css("display", "block");
             });
+            
             $("#pay-2").click(function() {
                 
+                var recieve_id = "";
+                var account_id = "";
                 // perform REST call
                 console.log("SENDING REST CALL");
+               
+                // find the account id
+                for (var i = 0; i < customers.length; i++) {
+                    if (customers[i].first_name === $("#transfer-to").val()) {
+                        recieve_id = customers[i]._id;
+                        
+                        // get recieve_id's account ids
+                        var str = "http://api.reimaginebanking.com/customers/" + recieve_id + "/accounts?key=9416d0a4733e0afdb25683edde1840ef";
+                        $.ajax({
+                            url: str,
+                            success: function(results){
+                                var found = false;
+                                console.log("fucking results: " + results.length);
+                                accounts = results.slice();
+                                
+                                // auto stuff into chess
+                                
+                                account_id = accounts[0]._id;
+                                account_id.type = "checking";
+                                var amount_pay = $("#transfer-amount").val();
+                                
+                                // send final transfer 
+                                
+                                var url1 = "http://api.reimaginebanking.com";
+                                var key = "?key=9416d0a4733e0afdb25683edde1840ef";
+                                
+                                console.log("command: " + pay_account);
+                                console.log("command: " + account_id);
+                                console.log("command: " + amount_pay);
+                                $.ajax({
+                                    type: "POST",
+                                    url: url1 + "/accounts/" + pay_account + "/transfers" + key,
+                                    data: JSON.stringify({
+                                      "medium": "balance",
+                                      "payee_id": account_id,
+                                      "amount": parseFloat(amount_pay),
+                                      "transaction_date": "2016-08-07",
+                                      "status": "pending",
+                                      "description": "Transferring"
+                                    }),
+                                    contentType: "application/json",
+                                    dataType: "json",
+                                    success: function(data){alert(data);},
+                                    failure: function(errMsg) {
+                                        alert(errMsg);
+                                    }
+                    });
+                            },
+                            error: function(xhr, status, error) {
+                                console.log("errors in customer account populate");
+                            }
+                        });
+                        break;
+                    }
+                }
+                
+                
             });
         });
+        
+        
+        function update() {
+            $.ajax({
+                                    url: "http://api.reimaginebanking.com/accounts/" + pay_account + "/transfers?key=9416d0a4733e0afdb25683edde1840ef",
+                                    success: function(results){
+                                        console.log(results);
+                                        $("#inner").html("");
+                                        for(var i = 0; i < results.length; i++) {
+                                            $("#inner").append("<h4 style='display: inline;'>Amount: </h4>" + results[i]._id + "<p>" + results[i].amount +"</p>");
+                                        }
+                                
+                                    },
+                            error: function(xhr, status, error) {
+                                console.log("errors in customer account populate");
+                            }
+                            });
+        }
     </script>
     
 </body>
