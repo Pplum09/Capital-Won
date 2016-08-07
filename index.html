@@ -1,0 +1,240 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <style>
+        body {
+            height: 100%;
+            width: 100%;
+            background: white;
+        }
+        
+        #profile-pic {
+            border-radius: 50%;
+            background: #BDBDBE;
+            height: 90px;
+            width: 90px;
+            border: 0px;
+            margin: 0px;
+            padding: 0px;
+        }
+        
+        .form-control {
+            height: 50px;
+            padding: 5px 20px;
+        }
+        
+        .modal {
+          text-align: center;
+          padding: 0!important;
+        }
+
+        .modal:before {
+          content: '';
+          display: inline-block;
+          height: 100%;
+          vertical-align: middle;
+        }
+
+        .modal-dialog {
+          display: inline-block;
+          text-align: left;
+          vertical-align: middle;
+        }
+        
+        hr {
+            border-top: 1px solid #8E8E8F;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal fade" tabindex="-1" role="dialog" id="modal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-body">
+            <p>We don't recognize that info.<br> Give it another try.</p>
+          </div>
+          <div class="modal-footer" style="text-align: center;">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <div class="container-fluid" style="padding: 0px;">
+        <nav class="navbar navbar-default">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <a class="navbar-brand text-center" href="#" style="width: 100%; color: #004879;"><h3 style="margin: 0px;">Capital Juan</h3></a>
+            </div>
+        </nav>
+    </div>
+    <div class="container-fluid">
+        <div id="login-screen">
+            <div class="row" style="margin-top: 10px;">
+                <div class="col-xs-12">
+                    <div class="row">
+                        <div class="col-xs-4 col-xs-offset-4 text-center">
+                            <div id="profile-pic"  style="float: none; margin: 0 auto;"></div>
+                            <a href="#" style="float: none; margin: 20px auto;">Switch Profile</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 40px;">
+                <div class="col-xs-12">
+                    <form id="login-form">
+                        <input id="username" class="form-control" placeholder="Username" autocomplete="off">
+                        <input id="password" type="password" class="form-control" placeholder="Password" style="margin-top: 15px;" autocomplete="off">
+                        <button type="button" id="login" class="btn btn-success" style="width: 100%; height: 65px; margin-top: 30px; font-size: 22px;">Sign In</button>
+                    </form>    
+                </div>
+            </div>
+        </div>  
+        <div id="dashboard" style="display: none;">
+            <h3 id="greeting" style="margin-top: 10px; margin-bottom: 20px;" class="text-center"></h3>
+            <div>
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Home</a></li>
+                    <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Request/Pay</a></li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content well">
+                    <div role="tabpanel" class="tab-pane active" id="home">
+                        <h4 style="margin-bottom: 0px; font-weight: bold;">Accounts</h4>
+                        <hr>
+                        <div id="customer-accounts"></div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="profile">
+                        <input id="transfer-amount" class="form-control" type="number" min="1" step="any" placeholder="0.00">
+                        <input id="transfer-to" class="form-control" placeholder="transfer to...">
+                        <div class="dropdown">
+                            <button id="account-dropdown" class="btn btn-default dropdown-toggle text-left" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true" style="height: 45px; width: 100%;">
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1" style="width: 100%;" id="accounts-pay"></ul>
+                        </div>
+                        <button id="pay-1" class="btn" style="width: 100%; background: #ccc; font-size: 20px; margin-top: 20px; display: block;">Pay</button>
+                        <button id="pay-2" class="btn btn-success" style="width: 100%; font-size: 20px; margin-top: 20px; display: none;"></button>
+                    </div>
+              </div>
+
+            </div>  
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script>
+        
+        var customers = [];
+        var customer = {};
+        var accounts = [];
+        var pay_account = "";
+        $.ajax({
+            url: 'http://api.reimaginebanking.com/customers?key=9416d0a4733e0afdb25683edde1840ef',
+            success: function(results){
+                console.log(results);
+                // temporary password frontend assign
+                for (var i = 0; i < results.length; i++) {
+                    results[i].password = "password";
+                }
+                
+                customers = results;
+            },
+            error: function(xhr, status, error) {
+                console.log("errors");
+            }
+        });
+        
+        $(function() {
+            
+            $("#modal").keyup(function() {
+                $("#modal").modal("hide");
+            });
+            
+            $("#login-form").keyup(function(e) {
+                
+                if (e.which === 13 && $("#login").attr("disabled") != "disabled") {
+                    $("#login").click();
+                }
+                
+                else if ($("#username").val().trim() !== "" && $("#password").val().trim() !== "") {
+                    $('#login').prop('disabled', false);
+                }
+                
+                else {
+                    $('#login').prop('disabled', true);
+                }
+            });
+            //$('#login').prop('disabled', true);
+            $("#login").click(function() {
+                
+                // validate login attempt
+                var valid = false;
+                for (var i = 0; i < customers.length; i++) {
+                    //if(true) {
+                    if ($("#username").val() === customers[i].first_name && $("#password").val() === customers[i].password) {
+                        customer = customers[i];
+                        console.log(customer);
+                        valid = true;
+                        // populate next page
+                        $("#greeting").html("Hi " + customer.first_name);
+                        var str = "http://api.reimaginebanking.com/customers/" +customer._id + "/accounts?key=9416d0a4733e0afdb25683edde1840ef";
+                        // populate customer accounts
+                        $.ajax({
+                            url: str,
+                            success: function(results){
+                                accounts = results;
+                                // populate home page
+                                for (var i = 0; i < accounts.length; i++) {
+                                    $("#customer-accounts").append("<h5><b>" + accounts[i].nickname + "</b></h5><h5 style='display: inline'>Balance: </h5>$" + accounts[i].balance);
+                                }
+                                
+                                
+                                // set initial account
+                                $("#account-dropdown").html(accounts[0].nickname);
+                                pay_account = accounts[0]._id;
+                                // populate uls
+                                for (var i = 0; i < accounts.length; i++) {
+                                    $("#accounts-pay").append("<li><a href='#' id='pay-" + accounts[i]._id + "'>" + accounts[i].nickname + "</a></li>");
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.log("errors in customer account populate");
+                            }
+                        });
+                        
+                        // swap views
+                        $("#login-screen").css("display", "none");
+                        $("#dashboard").css("display", "block");
+                    }
+                }
+                
+                if (!valid) {
+                    $("#modal").modal("show");
+                }
+            });
+            
+            $("#pay-1").click(function() {
+                $("#pay-2").html("Pay " + $("#transfer-to").val() + " $" + $("#transfer-amount").val());
+                $("#pay-1").css("display", "none");
+                $("#pay-2").css("display", "block");
+            });
+            $("#pay-2").click(function() {
+                
+                // perform REST call
+                console.log("SENDING REST CALL");
+            });
+        });
+    </script>
+    
+</body>
+</html>
