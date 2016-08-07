@@ -1,0 +1,94 @@
+<html>
+
+      <head>
+            <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.4.min.js"></script>
+      </head>
+
+      <body>
+
+            Sender's ID<br><input id="send_id"></input></br>
+            Sender's Account<br><input id="send_acc"></input></br>
+            Reciever's ID<br><input id="get_id"></input></br>
+            Reciever's Account<br><input id="get_acc"></input></br>
+            Amount Transferring<br><input id="sendmoney"></input><br></br>
+
+            <button id="send" style="width:100px; height:50px;">Send Money</button>
+
+
+            <script>
+            var url1 = "http://api.reimaginebanking.com";
+            var key = "?key=8686441bd8eaec2437b538305cbf1909";
+                  $("#send").click(function() {
+                    $.ajax({
+                          type: "POST",
+                          url: url1+"/accounts/"+$("#send_acc").val()+"/transfers"+key,
+                          data: JSON.stringify({
+                              "medium": "balance",
+                              "payee_id": $("#get_acc").val(),
+                              "amount": parseFloat($("#sendmoney").val()),
+                              "transaction_date": "2016-08-07",
+                              "status": "pending",
+                              "description": "Transferring"
+                          }),
+                          contentType: "application/json",
+                          dataType: "json",
+                          success: function(data){alert(data);},
+                          failure: function(errMsg) {
+                            alert(errMsg);
+                          }
+                    });
+
+                        console.log($("#send_id") + "is sending $" + $("#sendmoney").val() + " to " + $("#get_id").val());
+
+
+
+
+                  });
+
+                  /**
+                  JSON EXAMPLE OF A FOO
+                  var customer = {
+                    "first_name": "Isara",
+                    "last_name": "Ritthaworn",
+                    "address": {
+                        "street_number": "1337",
+                        "street_name": "Swag Lane",
+                        "city": "Trap",
+                        "state": "MD",
+                        "zip": "00000"
+                    }
+                  };
+                  **/
+
+
+
+                  /**
+                  CREATING A FOO
+                  $.ajax({
+                        type: "POST",
+                        url: "http://api.reimaginebanking.com/customers?key=8686441bd8eaec2437b538305cbf1909",
+                        data: JSON.stringify(customer),
+                        contentType: "application/json",
+                        dataType: "json",
+                        success: function(data){alert(data);},
+                        failure: function(errMsg) {
+                          alert(errMsg);
+                        }
+                  });
+                  **/
+
+
+                /**
+                $.ajax({
+                        url: url1+"/customers"+key,
+                        success: function(results){
+                          console.log(results);
+                        }
+                  });
+                  **/
+
+
+
+            </script>
+      </body>
+</html>
